@@ -1,26 +1,32 @@
-import {
-  Client,
-  IntentsBitField,
-  type BitFieldResolvable,
-  type GatewayIntentsString,
-} from "discord.js";
-import { env } from "./env";
-import { Events } from "./classes/events";
-import { Loggger } from "./classes/logger";
+import { env } from './env';
+import { Events } from './classes/events';
+import { Loggger } from './classes/logger';
+import { XP } from './classes/xp';
+import { Commands } from './classes/commands';
+import { Rest } from './classes/rest';
 
 const logger = new Loggger();
 
 const run = async () => {
-  const XP = new Client({
-    intents: Object.keys(IntentsBitField.Flags) as BitFieldResolvable<
-      GatewayIntentsString,
-      number
-    >,
-  });
+	const xp = new XP();
 
-  await XP.login(env.DISCORD_TOKEN);
-  const events = new Events(XP, logger);
-  await events.bind();
+	await xp.login(env.DISCORD_TOKEN);
+	const events = new Events(xp, logger);
+	await events.bind();
+	const commands = new Commands(xp, logger);
+	const commandsArray = await commands.bind();
+
+	if (commandsArray) {
+		const rest = new Rest(
+			logger,
+			env.DISCORD_TOKEN,
+			env.DISCORD_CLIENT_ID,
+			env.DISCORD_GUILD_ID,
+			commandsArray,
+		);
+
+		await rest.register();
+	}
 };
 
 run();

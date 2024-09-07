@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String     @id @unique
+  globalName       String
+  displayName      String
+  anuncios         Anuncio[]
+  balance          Int        @default(0)
+  cashbackPoints   Int        @default(0)
+  purchases        Purchase[]
+  updatedAt        DateTime   @updatedAt
+  createdAt        DateTime   @default(now())
+  documents        Document?
+  isApprovedSeller Boolean    @default(false)
+  Withdraw         Withdraw[]
+}
+
+model Seller {
+  cpf            String    @id @unique
+  nome_completo  String
+  chave_pix      String
+  chave_pix_type String
+  documents      Document? @relation(fields: [documentId], references: [id])
+  anuncios       Anuncio[]
+  withdraws      Withdraw  @relation(fields: [withdrawId], references: [id])
+  documentId     String?
+  approvedSeller Boolean   @default(false)
+  withdrawId     String
+}
+
+model Withdraw {
+  id       String   @id @default(uuid())
+  User     User     @relation(fields: [userId], references: [id])
+  userId   String
+  amount   Int
+  Seller   Seller[]
+  approved Boolean  @default(false)
+  status   String   @default("approval_pending")
+}
+
+model Anuncio {
+  id        String     @id @default(uuid())
+  titulo    String
+  preco     Int
+  category  String
+  game      String
+  User      User?      @relation(fields: [creatorId], references: [id])
+  creatorId String?
+  updatedAt DateTime   @updatedAt
+  createdAt DateTime   @default(now())
+  Purchase  Purchase[]
+  Seller    Seller?    @relation(fields: [sellerCpf], references: [cpf])
+  sellerCpf String?
+}
+
+model Purchase {
+  id        String   @id @default(uuid())
+  userId    String
+  price     Int
+  anuncioId String
+  anuncio   Anuncio  @relation(fields: [anuncioId], references: [id])
+  updatedAt DateTime @updatedAt
+  User      User     @relation(fields: [userId], references: [id])
+}
+
+model Document {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  doc_frente String
+  doc_verso  String
+  selfie     String
+  isAprovved Boolean  @default(false)
+  User       User     @relation(fields: [userId], references: [id])
+  updatedAt  DateTime @updatedAt
+  createdAt  DateTime @default(now())
+  Seller     Seller[]
+}
