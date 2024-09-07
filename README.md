@@ -1,4 +1,4 @@
-# projeto-sem-nome-eldorado-no-discord
+# XP Market
 
 To install dependencies:
 
